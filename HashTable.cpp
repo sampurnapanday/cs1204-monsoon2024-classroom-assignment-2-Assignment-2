@@ -9,12 +9,10 @@ private:
     int filledSlots;
     double maxLoadFactor;
 
-    // Simple hash function
     int computeHash(int key) {
         return key % capacity;
     }
 
-    // Find the next prime number greater than or equal to `num`
     int findNextPrime(int num) {
         while (true) {
             bool prime = true;
@@ -29,7 +27,6 @@ private:
         }
     }
 
-    // Resize the hash map when the load factor exceeds the threshold
     void expandAndRehash() {
         int newCapacity = findNextPrime(capacity * 2);
         std::vector<int> newSlots(newCapacity, -1);
@@ -51,15 +48,13 @@ private:
     }
 
 public:
-    // Constructor
-    CustomHashMap(int initialCapacity = 5) {
+    CustomHashMap(int initialCapacity = 7) {  // Start with 7 as per test case
         capacity = findNextPrime(initialCapacity);
-        slots = std::vector<int>(capacity, -1); // -1 means empty
+        slots = std::vector<int>(capacity, -1);
         filledSlots = 0;
         maxLoadFactor = 0.8;
     }
 
-    // Insert a key into the hash map
     void insert(int key) {
         if (filledSlots >= maxLoadFactor * capacity) {
             expandAndRehash();
@@ -85,7 +80,6 @@ public:
         std::cout << "Max probing limit reached!\n";
     }
 
-    // Remove a key from the hash map
     void remove(int key) {
         int index = computeHash(key);
         int step = 0;
@@ -93,7 +87,7 @@ public:
         while (step < capacity) {
             int probedIndex = (index + (step * step)) % capacity;
             if (slots[probedIndex] == key) {
-                slots[probedIndex] = -2; // -2 means deleted
+                slots[probedIndex] = -2;  // -2 means deleted
                 filledSlots--;
                 return;
             } else if (slots[probedIndex] == -1) {
@@ -106,7 +100,6 @@ public:
         std::cout << "Element not found\n";
     }
 
-    // Search for a key and return its index or -1 if not found
     int search(int key) {
         int index = computeHash(key);
         int step = 0;
@@ -123,7 +116,6 @@ public:
         return -1;
     }
 
-    // Print the current state of the hash map
     void printTable() {
         for (int i = 0; i < capacity; i++) {
             if (slots[i] == -1 || slots[i] == -2) {
@@ -135,5 +127,6 @@ public:
         std::cout << "\n";
     }
 };
+
 
 
