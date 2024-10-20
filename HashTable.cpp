@@ -1,5 +1,3 @@
-// HashTable.cpp
-
 #include <iostream>
 #include <vector>
 
@@ -30,7 +28,7 @@ private:
     int nextPrime(int n);
 };
 
-const double HashTable::loadFactorThreshold = 1.0;
+const double HashTable::loadFactorThreshold = 0.8;
 
 HashTable::HashTable(int size) {
     tableSize = nextPrime(size);
@@ -141,8 +139,7 @@ bool HashTable::isPrime(int n) {
     if (n % 2 == 0 || n % 3 == 0) return false;
 
     for (int i = 5; i * i <= n; i += 6) {
-        if (n % i == 0 || n % (i + 2) == 0)
-            return false;
+        if (n % i == 0 || n % (i + 2) == 0) return false;
     }
     return true;
 }
@@ -153,4 +150,5 @@ int HashTable::nextPrime(int n) {
     }
     return n;
 }
+
 
