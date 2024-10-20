@@ -1,12 +1,44 @@
 
+
 #include <iostream>
 #include <vector>
-#include "HashTable.h"
+
+class HashTable {
+public:
+    HashTable(int size);
+    void insert(int key);
+    void remove(int key);
+    int search(int key);
+    void printTable();
+
+private:
+    struct Entry {
+        int key;
+        bool isActive; // true if the entry is active (not deleted)
+        Entry(int k = -1, bool active = false) : key(k), isActive(active) {}
+    };
+
+    std::vector<Entry> table;
+    int currentSize;
+    int tableSize;
+    const double loadFactorThreshold = 0.8;
+
+    int hashFunction(int key);
+    void rehash();
+    int quadraticProbe(int key, bool forInsertion);
+    bool isPrime(int n);
+    int nextPrime(int n);
+};
+
 
 HashTable::HashTable(int size) {
     tableSize = nextPrime(size);
-    table.resize(tableSize, Entry());
+    table.resize(tableSize);
     currentSize = 0;
+}
+
+int HashTable::hashFunction(int key) {
+    return key % tableSize;
 }
 
 void HashTable::insert(int key) {
@@ -58,10 +90,6 @@ void HashTable::printTable() {
     std::cout << std::endl;
 }
 
-int HashTable::hashFunction(int key) {
-    return key % tableSize;
-}
-
 int HashTable::quadraticProbe(int key, bool forInsertion) {
     int hash = hashFunction(key);
     int i = 0;
@@ -79,13 +107,12 @@ int HashTable::quadraticProbe(int key, bool forInsertion) {
             if (table[idx].key == key && table[idx].isActive) {
                 return idx;
             } else if (!table[idx].isActive && table[idx].key == -1) {
-                // Stop if an empty slot is found during search
                 return -1;
             }
         }
         i++;
     }
-    return -1; // Max probing limit reached
+    return -1; 
 }
 
 void HashTable::rehash() {
@@ -122,3 +149,4 @@ int HashTable::nextPrime(int n) {
     }
     return n;
 }
+
