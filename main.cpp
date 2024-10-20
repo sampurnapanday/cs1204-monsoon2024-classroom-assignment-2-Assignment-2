@@ -1,5 +1,5 @@
 #include "HashTable.cpp"
-
+#include <iostream>
 int main() {
     int initialSize = 7; 
     HashTable ht(initialSize);
