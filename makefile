@@ -1,5 +1,13 @@
-default:
-	# write command to test your files (you do not need it for your submissions)
+all: hashtable
+
+hashtable: main.o HashTable.o
+    g++ main.o HashTable.o -o hashtable
+
+main.o: main.cpp
+    g++ -c main.cpp
+
+HashTable.o: HashTable.cpp HashTable.h
+    g++ -c HashTable.cpp
 
 clean:
-	rm *.out
+    rm -f *.o hashtable
