@@ -1,158 +1,138 @@
-#include <iostream>
 #include <vector>
+#include <cmath>
+#include <iostream>
+
 class HashTable {
-public:
-    HashTable(int size);
-    void insert(int key);
-    void remove(int key);
-    int search(int key);
-    void printTable();
-
 private:
-    struct Entry {
-        int key;
-        bool isActive; // true if the entry is active (not deleted)
-        Entry(int k = -1, bool active = false) : key(k), isActive(active) {}
-    };
+    std::vector<int> table;
+    int size;
+    int count;
+    double loadFactorThreshold;
 
-    std::vector<Entry> table;
-    int currentSize;
-    int tableSize;
-    static const double loadFactorThreshold; // Changed to static const
-
-    int hashFunction(int key);
-    void rehash();
-    int quadraticProbe(int key, bool forInsertion);
-    bool isPrime(int n);
-    int nextPrime(int n);
-};
-
-// Initialize the static const member
-const double HashTable::loadFactorThreshold = 0.8;
-
-// Implement the HashTable methods
-
-HashTable::HashTable(int size) {
-    tableSize = nextPrime(size);
-    table.resize(tableSize, Entry());
-    currentSize = 0;
-}
-
-int HashTable::hashFunction(int key) {
-    return key % tableSize;
-}
-
-void HashTable::insert(int key) {
-    if (search(key) != -1) {
-        std::cout << "Duplicate key insertion is not allowed" << std::endl;
-        return;
+    // Hash function
+    int hash(int key) {
+        return key % size;
     }
 
-    if (static_cast<double>(currentSize + 1) / tableSize > loadFactorThreshold) {
-        rehash();
-    }
-
-    int idx = quadraticProbe(key, true);
-    if (idx == -1) {
-        std::cout << "Max probing limit reached!" << std::endl;
-        return;
-    }
-
-    table[idx] = Entry(key, true);
-    currentSize++;
-}
-
-void HashTable::remove(int key) {
-    int idx = quadraticProbe(key, false);
-    if (idx != -1 && table[idx].isActive) {
-        table[idx].isActive = false;
-        currentSize--;
-    } else {
-        std::cout << "Element not found" << std::endl;
-    }
-}
-
-int HashTable::search(int key) {
-    int idx = quadraticProbe(key, false);
-    if (idx != -1 && table[idx].isActive) {
-        return idx;
-    }
-    return -1;
-}
-
-void HashTable::printTable() {
-    for (const auto& entry : table) {
-        if (entry.isActive) {
-            std::cout << entry.key << " ";
-        } else {
-            std::cout << "- ";
+    // Find the next prime number greater than or equal to `n`
+    int nextPrime(int n) {
+        while (true) {
+            bool isPrime = true;
+            for (int i = 2; i <= std::sqrt(n); i++) {
+                if (n % i == 0) {
+                    isPrime = false;
+                    break;
+                }
+            }
+            if (isPrime) return n;
+            n++;
         }
     }
-    std::cout << std::endl;
-}
 
-// Private helper functions
-
-int HashTable::quadraticProbe(int key, bool forInsertion) {
-    int hash = hashFunction(key);
-    int i = 0;
-    int maxProbes = (tableSize + 1) / 2;
-    int idx;
-
-    while (i < maxProbes) {
-        idx = (hash + i * i) % tableSize;
-
-        if (forInsertion) {
-            if (!table[idx].isActive) {
-                return idx;
+    // Resize and rehash the hash table
+    void resize() {
+        int newSize = nextPrime(size * 2);
+        std::vector<int> newTable(newSize, -1);
+        
+        for (int i = 0; i < size; i++) {
+            if (table[i] != -1 && table[i] != -2) {  // -2 represents a deleted slot
+                int key = table[i];
+                int index = key % newSize;
+                int j = 0;
+                while (newTable[(index + j * j) % newSize] != -1) {
+                    j++;
+                }
+                newTable[(index + j * j) % newSize] = key;
             }
-        } else {
-            if (table[idx].key == key && table[idx].isActive) {
-                return idx;
-            } else if (!table[idx].isActive && table[idx].key == -1) {
-                // Stop if an empty slot is found during search
+        }
+        table = newTable;
+        size = newSize;
+    }
+
+public:
+    // Constructor
+    HashTable(int initSize = 5) {
+        size = nextPrime(initSize);
+        table = std::vector<int>(size, -1); // -1 represents an empty slot
+        count = 0;
+        loadFactorThreshold = 0.8;
+    }
+
+    // Insert a key
+    void insert(int key) {
+        if (count >= loadFactorThreshold * size) {
+            resize();
+        }
+        int index = hash(key);
+        int j = 0;
+
+        while (j < size) {
+            int probeIndex = (index + (j * j)) % size;
+            if (table[probeIndex] == key) {
+                std::cout << "Duplicate key insertion is not allowed\n";
+                return;
+            }
+            if (table[probeIndex] == -1 || table[probeIndex] == -2) {
+                table[probeIndex] = key;
+                count++;
+                return;
+            }
+            j++;
+        }
+        std::cout << "Max probing limit reached!\n";
+    }
+
+    // Remove a key
+    void remove(int key) {
+        int index = hash(key);
+        int j = 0;
+
+        while (j < size) {
+            int probeIndex = (index + (j * j)) % size;
+            if (table[probeIndex] == key) {
+                table[probeIndex] = -2; // -2 represents a deleted slot
+                count--;
+                return;
+            } else if (table[probeIndex] == -1) {
+                std::cout << "Element not found\n";
+                return;
+            }
+            j++;
+        }
+        std::cout << "Element not found\n";
+    }
+
+    // Search for a key and return its index, or -1 if not found
+    int search(int key) {
+        int index = hash(key);
+        int j = 0;
+
+        while (j < size) {
+            int probeIndex = (index + (j * j)) % size;
+            if (table[probeIndex] == key) {
+                return probeIndex;
+            } else if (table[probeIndex] == -1) {
                 return -1;
             }
+            j++;
         }
-        i++;
+        return -1;
     }
-    return -1; // Max probing limit reached
-}
 
-void HashTable::rehash() {
-    int oldSize = tableSize;
-    tableSize = nextPrime(2 * tableSize);
-    std::vector<Entry> oldTable = table;
-    table.clear();
-    table.resize(tableSize, Entry());
-    currentSize = 0;
-
-    for (const auto& entry : oldTable) {
-        if (entry.isActive) {
-            insert(entry.key);
+    // Print the hash table
+    void printTable() {
+        for (int i = 0; i < size; i++) {
+            if (table[i] == -1) {
+                std::cout << "- ";
+            } else if (table[i] == -2) {
+                std::cout << "- ";
+            } else {
+                std::cout << table[i] << " ";
+            }
         }
+        std::cout << "\n";
     }
-}
-
-bool HashTable::isPrime(int n) {
-    if (n <= 1) return false;
-    if (n <= 3) return true;
-
-    if (n % 2 == 0 || n % 3 == 0) return false;
-
-    for (int i = 5; i * i <= n; i += 6) {
-        if (n % i == 0 || n % (i + 2) == 0)
-            return false;
-    }
-    return true;
-}
-
-int HashTable::nextPrime(int n) {
-    while (!isPrime(n)) {
-        n++;
-    }
-    return n;
-}
+};
 
 
 
