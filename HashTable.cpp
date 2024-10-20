@@ -1,157 +1,129 @@
-#include <iostream>
 #include <vector>
-using namespace std;
+#include <cmath>
+#include <iostream>
 
-class CustomHashTable {
+class HashTable {
 private:
-    int capacity;      // Size of the table
-    int elements;      // Number of elements currently in the table
-    int* storage;      // Array representing the hash table
-    float loadThreshold = 0.8;  // Load factor threshold for resizing
+    std::vector<int> table;
+    int size;
+    int count;
+    double loadFactorThreshold;
 
-    // Hash function: computes index using modulo operation
-    int computeHash(int key) {
-        return key % capacity;
+    // Hash function
+    int hash(int key) {
+        return key % size;
+    }
+
+    int nextPrime(int n) {
+        while (true) {
+            bool isPrime = true;
+            for (int i = 2; i <= std::sqrt(n); i++) {
+                if (n % i == 0) {
+                    isPrime = false;
+                    break;
+                }
+            }
+            if (isPrime) return n;
+            n++;
+        }
+    }
+
+    void resize() {
+        int newSize = nextPrime(size * 2);
+        std::vector<int> newTable(newSize, -1);
+        
+        for (int i = 0; i < size; i++) {
+            if (table[i] != -1 && table[i] != -2) {  // -2 represents a deleted slot
+                int key = table[i];
+                int index = key % newSize;
+                int j = 0;
+                while (newTable[(index + j * j) % newSize] != -1) {
+                    j++;
+                }
+                newTable[(index + j * j) % newSize] = key;
+            }
+        }
+        table = newTable;
+        size = newSize;
     }
 
 public:
-    // Constructor to initialize the table with given size
-    CustomHashTable(int initialSize) {
-        capacity = initialSize;
-        elements = 0;
-        storage = new int[capacity];
-
-        // Initialize all slots to -1 (indicating empty)
-        for (int i = 0; i < capacity; i++) {
-            storage[i] = -1;
-        }
+    // Constructor
+    HashTable(int initSize = 5) {
+        size = nextPrime(initSize);
+        table = std::vector<int>(size, -1); // -1 represents an empty slot
+        count = 0;
+        loadFactorThreshold = 0.8;
     }
 
-    // Insert a key into the hash table
     void insert(int key) {
-        float currentLoad = static_cast<float>(elements) / capacity;
-
-        if (currentLoad >= loadThreshold) {
-            expandAndRehash();
+        if (count >= loadFactorThreshold * size) {
+            resize();
         }
+        int index = hash(key);
+        int j = 0;
 
-        int index = computeHash(key);
-
-        for (int i = 0; computeHash(index + i * i) != index || i == 0; i++) {
-            int newIndex = computeHash(index + i * i);
-
-            if (storage[newIndex] == key) {
-                cout << "Duplicate key insertion is not allowed" << endl;
+        while (j < size) {
+            int probeIndex = (index + (j * j)) % size;
+            if (table[probeIndex] == key) {
+                std::cout << "Duplicate key insertion is not allowed\n";
                 return;
             }
-
-            if (storage[newIndex] == -1) {
-                storage[newIndex] = key;
-                elements++;
+            if (table[probeIndex] == -1 || table[probeIndex] == -2) {
+                table[probeIndex] = key;
+                count++;
                 return;
             }
+            j++;
         }
-        cout << "Max probing limit reached!" << endl;
+        std::cout << "Max probing limit reached!\n";
     }
 
-    // Remove a key from the table
     void remove(int key) {
-        int index = computeHash(key);
+        int index = hash(key);
+        int j = 0;
 
-        for (int i = 0; computeHash(index + i * i) != index || i == 0; i++) {
-            int newIndex = computeHash(index + i * i);
-
-            if (storage[newIndex] == key) {
-                storage[newIndex] = -1;
-                elements--;
+        while (j < size) {
+            int probeIndex = (index + (j * j)) % size;
+            if (table[probeIndex] == key) {
+                table[probeIndex] = -2; // -2 represents a deleted slot
+                count--;
+                return;
+            } else if (table[probeIndex] == -1) {
+                std::cout << "Element not found\n";
                 return;
             }
+            j++;
         }
-        cout << "Element not found" << endl;
+        std::cout << "Element not found\n";
     }
 
-    // Resize the hash table when load factor exceeds the threshold
-    void expandAndRehash() {
-        int oldCapacity = capacity;
-        capacity = findNextPrime(2 * oldCapacity);
-
-        int* newStorage = new int[capacity];
-        for (int i = 0; i < capacity; i++) {
-            newStorage[i] = -1;
-        }
-
-        for (int i = 0; i < oldCapacity; i++) {
-            if (storage[i] != -1) {
-                int key = storage[i];
-                int index = computeHash(key);
-
-                if (newStorage[index] == -1) {
-                    newStorage[index] = key;
-                    continue;
-                }
-
-                for (int j = 1; j < capacity; j++) {
-                    int newIndex = computeHash(index + j * j);
-                    if (newStorage[newIndex] == -1) {
-                        newStorage[newIndex] = key;
-                        break;
-                    }
-                }
-            }
-        }
-        delete[] storage;
-        storage = newStorage;
-    }
-
-    // Search for a key in the table and return its index, or -1 if not found
     int search(int key) {
-        int index = computeHash(key);
+        int index = hash(key);
+        int j = 0;
 
-        for (int i = 0; computeHash(index + i * i) != index || i == 0; i++) {
-            int newIndex = computeHash(index + i * i);
-
-            if (storage[newIndex] == -1) {
+        while (j < size) {
+            int probeIndex = (index + (j * j)) % size;
+            if (table[probeIndex] == key) {
+                return probeIndex;
+            } else if (table[probeIndex] == -1) {
                 return -1;
             }
-            if (storage[newIndex] == key) {
-                return newIndex;
-            }
+            j++;
         }
         return -1;
     }
-
-    // Print the contents of the table
     void printTable() {
-        for (int i = 0; i < capacity; i++) {
-            if (storage[i] == -1) {
-                cout << "- ";
+        for (int i = 0; i < size; i++) {
+            if (table[i] == -1) {
+                std::cout << "- ";
+            } else if (table[i] == -2) {
+                std::cout << "- ";
             } else {
-                cout << storage[i] << " ";
+                std::cout << table[i] << " ";
             }
         }
-        cout << endl;
-    }
-
-    // Check if a number is prime
-    bool isPrime(int num) {
-        if (num <= 1) return false;
-        if (num == 2 || num == 3) return true;
-        if (num % 2 == 0 || num % 3 == 0) return false;
-        for (int i = 5; i * i <= num; i += 6) {
-            if (num % i == 0 || num % (i + 2) == 0) return false;
-        }
-        return true;
-    }
-
-    // Find the next prime number greater than or equal to n
-    int findNextPrime(int n) {
-        int candidate = n;
-        while (!isPrime(candidate)) {
-            candidate++;
-        }
-        return candidate;
+        std::cout << "\n";
     }
 };
-
-
 
