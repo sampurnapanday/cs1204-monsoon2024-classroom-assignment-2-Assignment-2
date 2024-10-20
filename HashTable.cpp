@@ -1,7 +1,6 @@
-
-
 #include <iostream>
 #include <vector>
+
 class HashTable {
 public:
     HashTable(int size);
@@ -13,14 +12,14 @@ public:
 private:
     struct Entry {
         int key;
-        bool isActive; // true if the entry is active (not deleted)
+        bool isActive;
         Entry(int k = -1, bool active = false) : key(k), isActive(active) {}
     };
 
     std::vector<Entry> table;
     int currentSize;
     int tableSize;
-    static const double loadFactorThreshold; // Changed to static const
+    static const double loadFactorThreshold;
 
     int hashFunction(int key);
     void rehash();
@@ -29,10 +28,7 @@ private:
     int nextPrime(int n);
 };
 
-// Initialize the static const member
 const double HashTable::loadFactorThreshold = 0.8;
-
-// Implement the HashTable methods
 
 HashTable::HashTable(int size) {
     tableSize = nextPrime(size);
@@ -83,25 +79,25 @@ int HashTable::search(int key) {
 }
 
 void HashTable::printTable() {
-    for (const auto& entry : table) {
-        if (entry.isActive) {
-            std::cout << entry.key << " ";
+    for (size_t i = 0; i < tableSize; ++i) {
+        if (table[i].isActive) {
+            std::cout << table[i].key;
         } else {
-            std::cout << "- ";
+            std::cout << "-";
+        }
+        if (i != tableSize - 1) {
+            std::cout << " ";
         }
     }
     std::cout << std::endl;
 }
 
-// Private helper functions
-
 int HashTable::quadraticProbe(int key, bool forInsertion) {
     int hash = hashFunction(key);
     int i = 0;
-    int maxProbes = (tableSize + 1) / 2;
     int idx;
 
-    while (i < maxProbes) {
+    while (i < tableSize) {
         idx = (hash + i * i) % tableSize;
 
         if (forInsertion) {
@@ -109,16 +105,15 @@ int HashTable::quadraticProbe(int key, bool forInsertion) {
                 return idx;
             }
         } else {
-            if (table[idx].key == key && table[idx].isActive) {
+            if (table[idx].isActive && table[idx].key == key) {
                 return idx;
             } else if (!table[idx].isActive && table[idx].key == -1) {
-                // Stop if an empty slot is found during search
                 return -1;
             }
         }
         i++;
     }
-    return -1; // Max probing limit reached
+    return -1;
 }
 
 void HashTable::rehash() {
@@ -155,6 +150,7 @@ int HashTable::nextPrime(int n) {
     }
     return n;
 }
+
 
 
 
