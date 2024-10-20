@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <vector>
+
 class HashTable {
 public:
     HashTable(int size);
@@ -28,9 +29,8 @@ private:
     bool isPrime(int n);
     int nextPrime(int n);
 };
-const double HashTable::loadFactorThreshold = 0.8;
 
-// Implement the HashTable methods
+const double HashTable::loadFactorThreshold = 1.0;
 
 HashTable::HashTable(int size) {
     tableSize = nextPrime(size);
@@ -94,8 +94,6 @@ void HashTable::printTable() {
     std::cout << std::endl;
 }
 
-// Private helper functions
-
 int HashTable::quadraticProbe(int key, bool forInsertion) {
     int hash = hashFunction(key);
     int i = 0;
@@ -113,7 +111,6 @@ int HashTable::quadraticProbe(int key, bool forInsertion) {
             if (table[idx].isActive && table[idx].key == key) {
                 return idx;
             } else if (!table[idx].isActive && table[idx].key == -1) {
-                // Stop if an empty slot is found during search
                 return -1;
             }
         }
