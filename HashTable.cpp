@@ -2,7 +2,6 @@
 
 #include <iostream>
 #include <vector>
-
 class HashTable {
 public:
     HashTable(int size);
@@ -14,14 +13,14 @@ public:
 private:
     struct Entry {
         int key;
-        bool isActive; // true if the entry is active (not deleted)
+        bool isActive; 
         Entry(int k = -1, bool active = false) : key(k), isActive(active) {}
     };
 
     std::vector<Entry> table;
     int currentSize;
     int tableSize;
-    const double loadFactorThreshold = 0.8;
+    static const double loadFactorThreshold; 
 
     int hashFunction(int key);
     void rehash();
@@ -29,11 +28,13 @@ private:
     bool isPrime(int n);
     int nextPrime(int n);
 };
+const double HashTable::loadFactorThreshold = 0.8;
+
 
 
 HashTable::HashTable(int size) {
     tableSize = nextPrime(size);
-    table.resize(tableSize);
+    table.resize(tableSize, Entry());
     currentSize = 0;
 }
 
@@ -89,6 +90,8 @@ void HashTable::printTable() {
     }
     std::cout << std::endl;
 }
+
+// Private helper functions
 
 int HashTable::quadraticProbe(int key, bool forInsertion) {
     int hash = hashFunction(key);
