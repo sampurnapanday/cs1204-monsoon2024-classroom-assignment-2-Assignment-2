@@ -1,4 +1,3 @@
-// HashTable.cpp
 
 #include <iostream>
 #include <vector>
@@ -58,8 +57,6 @@ void HashTable::printTable() {
     }
     std::cout << std::endl;
 }
-
-// Private helper functions
 
 int HashTable::hashFunction(int key) {
     return key % tableSize;
