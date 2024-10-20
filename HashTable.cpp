@@ -1,8 +1,7 @@
-
+// HashTable.cpp
 
 #include <iostream>
 #include <vector>
-
 class HashTable {
 public:
     HashTable(int size);
@@ -14,7 +13,7 @@ public:
 private:
     struct Entry {
         int key;
-        bool isActive; 
+        bool isActive;
         Entry(int k = -1, bool active = false) : key(k), isActive(active) {}
     };
 
@@ -29,10 +28,9 @@ private:
     bool isPrime(int n);
     int nextPrime(int n);
 };
-
 const double HashTable::loadFactorThreshold = 0.8;
 
-
+// Implement the HashTable methods
 
 HashTable::HashTable(int size) {
     tableSize = nextPrime(size);
@@ -50,10 +48,6 @@ void HashTable::insert(int key) {
         return;
     }
 
-    if (static_cast<double>(currentSize + 1) / tableSize > loadFactorThreshold) {
-        rehash();
-    }
-
     int idx = quadraticProbe(key, true);
     if (idx == -1) {
         std::cout << "Max probing limit reached!" << std::endl;
@@ -62,6 +56,10 @@ void HashTable::insert(int key) {
 
     table[idx] = Entry(key, true);
     currentSize++;
+
+    if (static_cast<double>(currentSize) / tableSize >= loadFactorThreshold) {
+        rehash();
+    }
 }
 
 void HashTable::remove(int key) {
@@ -83,13 +81,13 @@ int HashTable::search(int key) {
 }
 
 void HashTable::printTable() {
-    for (size_t i = 0; i < table.size(); ++i) {
+    for (size_t i = 0; i < tableSize; ++i) {
         if (table[i].isActive) {
             std::cout << table[i].key;
         } else {
             std::cout << "-";
         }
-        if (i != table.size() - 1) {
+        if (i != tableSize - 1) {
             std::cout << " ";
         }
     }
@@ -115,13 +113,13 @@ int HashTable::quadraticProbe(int key, bool forInsertion) {
             if (table[idx].isActive && table[idx].key == key) {
                 return idx;
             } else if (!table[idx].isActive && table[idx].key == -1) {
-                
+                // Stop if an empty slot is found during search
                 return -1;
             }
         }
         i++;
     }
-    return -1; 
+    return -1;
 }
 
 void HashTable::rehash() {
