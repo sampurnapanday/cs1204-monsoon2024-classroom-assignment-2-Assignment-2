@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <vector>
+
 class HashTable {
 public:
     HashTable(int size);
@@ -20,7 +21,7 @@ private:
     std::vector<Entry> table;
     int currentSize;
     int tableSize;
-    static const double loadFactorThreshold; 
+    static const double loadFactorThreshold;
 
     int hashFunction(int key);
     void rehash();
@@ -28,6 +29,7 @@ private:
     bool isPrime(int n);
     int nextPrime(int n);
 };
+
 const double HashTable::loadFactorThreshold = 0.8;
 
 
@@ -81,11 +83,14 @@ int HashTable::search(int key) {
 }
 
 void HashTable::printTable() {
-    for (const auto& entry : table) {
-        if (entry.isActive) {
-            std::cout << entry.key << " ";
+    for (size_t i = 0; i < table.size(); ++i) {
+        if (table[i].isActive) {
+            std::cout << table[i].key;
         } else {
-            std::cout << "- ";
+            std::cout << "-";
+        }
+        if (i != table.size() - 1) {
+            std::cout << " ";
         }
     }
     std::cout << std::endl;
@@ -96,7 +101,7 @@ void HashTable::printTable() {
 int HashTable::quadraticProbe(int key, bool forInsertion) {
     int hash = hashFunction(key);
     int i = 0;
-    int maxProbes = (tableSize + 1) / 2;
+    int maxProbes = tableSize;
     int idx;
 
     while (i < maxProbes) {
@@ -107,9 +112,10 @@ int HashTable::quadraticProbe(int key, bool forInsertion) {
                 return idx;
             }
         } else {
-            if (table[idx].key == key && table[idx].isActive) {
+            if (table[idx].isActive && table[idx].key == key) {
                 return idx;
             } else if (!table[idx].isActive && table[idx].key == -1) {
+                
                 return -1;
             }
         }
