@@ -96,10 +96,9 @@ void HashTable::printTable() {
 int HashTable::quadraticProbe(int key, bool forInsertion) {
     int hash = hashFunction(key);
     int i = 0;
-    int maxProbes = tableSize;
     int idx;
 
-    while (i < maxProbes) {
+    while (i < tableSize) {
         idx = (hash + i * i) % tableSize;
 
         if (forInsertion) {
@@ -151,5 +150,6 @@ int HashTable::nextPrime(int n) {
     }
     return n;
 }
+
 
 
